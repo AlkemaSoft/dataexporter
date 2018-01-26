@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TablesExporter
 {
@@ -18,7 +15,7 @@ namespace TablesExporter
             {
                 con.Open();
 
-                var reader = new DataReader(con);
+                var reader = new DataReader(con,_saver);
 
                 var tableNames = System.Configuration.ConfigurationManager.AppSettings["ExportingTables"];
                 List<string> tableNamesList = null;
@@ -52,8 +49,7 @@ namespace TablesExporter
             }
             foreach (var tableName in executingTableNames)
             {
-                var tableStr = reader.GetTableStr(tableName);
-                _saver.Save(tableName, tableStr);
+                reader.WriteTable(tableName);
                 Console.WriteLine("Table '{0}' exported.", tableName);
             }
         }
