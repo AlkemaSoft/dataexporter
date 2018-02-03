@@ -20,7 +20,7 @@ namespace TablesExporter
             var filePath = $"{_dir}\\{tableName}.dat";
             try
             {
-                File.AppendAllText(filePath, tableStr);
+                File.WriteAllText(filePath, tableStr);
             }
             catch (IOException ex)
             {

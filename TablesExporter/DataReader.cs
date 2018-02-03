@@ -11,15 +11,12 @@ namespace TablesExporter
     {
         private SqlConnection _connection;
         private string _lineSeparator = Environment.NewLine;
-        private DataSaver _saver;
-
-        public DataReader(SqlConnection connection, DataSaver saver)
+        public DataReader(SqlConnection connection)
         {
             _connection = connection;
-            _saver = saver;
         }
 
-        public void WriteTable(string tableName)
+        public string GetTableStr(string tableName)
         {
             var resultStr = new StringBuilder(1200);
 
@@ -34,9 +31,10 @@ namespace TablesExporter
             resultStr.Append(columnDataTypesStr);
             resultStr.Append(_lineSeparator);
 
-            _saver.Save(tableName, resultStr.ToString());
+            var tableRowsStr    = GetTableDataStr(tableName, columns);
+            resultStr.Append(tableRowsStr);
 
-            WriteTableData(tableName, columns);
+            return resultStr.ToString();
         }
 
         public List<string> GetTableNames()
@@ -84,7 +82,7 @@ namespace TablesExporter
             return columns;
         }
 
-        private void WriteTableData(string tableName, List<Tuple<string, string>> columns)
+        private string GetTableDataStr(string tableName, List<Tuple<string, string>> columns)
         {
             var columnNames         = columns.Select(x => x.Item1).ToList();
             var columnNamesStr      = string.Join(",", columnNames);
@@ -92,12 +90,11 @@ namespace TablesExporter
             SqlCommand command      = new SqlCommand(sqlExpression, _connection);
             SqlDataReader reader    = command.ExecuteReader();
 
+            var resultStr = new StringBuilder(120);
             if (reader.HasRows)
             {
                 while (reader.Read())
                 {
-                    var resultStr = new StringBuilder(120);
-
                     for (int i = 0; i < columns.Count; i++)
                     {
                         var valueStr = reader.GetValue(i).ToString();
@@ -109,11 +106,12 @@ namespace TablesExporter
 
                     }
                     resultStr.Append(_lineSeparator);
-                    _saver.Save(tableName, resultStr.ToString());
                 }
             }
 
             reader.Close();
+
+            return resultStr.ToString();
         }
     }
 }
